@@ -47,6 +47,7 @@ export async function callModel(
           ],
           temperature: options?.temperature ?? 0.3,
           max_tokens: options?.maxTokens ?? 2048,
+          max_completion_tokens: options?.maxTokens ?? 2048,
         }),
       });
 
