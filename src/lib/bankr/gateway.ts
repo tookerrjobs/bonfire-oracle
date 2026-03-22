@@ -1,25 +1,8 @@
-import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import { generateText } from 'ai';
 import { MODELS, type ModelConfig } from './types';
 
-if (!process.env.BANKR_API_KEY) {
+const BANKR_API_KEY = process.env.BANKR_API_KEY || '';
+if (!BANKR_API_KEY) {
   console.error('[BankrGateway] BANKR_API_KEY is not set — LLM calls will fail');
-}
-
-function createLLM() {
-  return createOpenAICompatible({
-    name: 'bankr',
-    baseURL: 'https://llm.bankr.bot/v1',
-    headers: {
-      'X-API-Key': process.env.BANKR_API_KEY || '',
-    },
-  });
-}
-
-let _llm: ReturnType<typeof createOpenAICompatible> | null = null;
-function getLLM() {
-  if (!_llm) _llm = createLLM();
-  return _llm;
 }
 
 export interface LLMCallResult {
@@ -50,17 +33,33 @@ export async function callModel(
     try {
       const start = Date.now();
 
-      const { text, usage } = await generateText({
-        model: getLLM()(modelId),
-        system: systemPrompt,
-        prompt: userPrompt,
-        temperature: options?.temperature ?? 0.3,
-        maxOutputTokens: options?.maxTokens ?? 2048,
+      const res = await fetch('https://llm.bankr.bot/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': BANKR_API_KEY,
+        },
+        body: JSON.stringify({
+          model: modelId,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature: options?.temperature ?? 0.3,
+          max_tokens: options?.maxTokens ?? 2048,
+        }),
       });
 
+      if (!res.ok) {
+        const errBody = await res.text();
+        throw new Error(`Bankr API ${res.status}: ${errBody}`);
+      }
+
+      const data = await res.json();
       const latencyMs = Date.now() - start;
-      const inputTokens = usage?.inputTokens ?? 0;
-      const outputTokens = usage?.outputTokens ?? 0;
+      const text = data.choices?.[0]?.message?.content || '';
+      const inputTokens = data.usage?.prompt_tokens ?? 0;
+      const outputTokens = data.usage?.completion_tokens ?? 0;
       const estimatedCost =
         inputTokens * config.costPerInputToken +
         outputTokens * config.costPerOutputToken;
