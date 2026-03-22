@@ -39,14 +39,90 @@ const INITIAL_STATE: AgentState = {
   bonfiresReputation: { accuracy: 0, totalPredictions: 0, communityTrust: 0.5 },
 };
 
+const CYCLE_INTERVAL_MS = 60000; // 60 seconds between auto-cycles
+
 export function useAgent() {
   const [state, setState] = useState<AgentState>(INITIAL_STATE);
   const [demoMode, setDemoMode] = useState(false);
   const [loading, setLoading] = useState(false);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const [running, setRunning] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Fetch initial state once on mount
-  useEffect(() => { fetchState(); }, []);
+  const doRunCycle = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cycle' }),
+      });
+      const data = await res.json();
+      if (data.state) {
+        setState(prev => ({
+          ...data.state,
+          // Accumulate activity log across cycles (server loses state between calls)
+          activityLog: [
+            ...data.state.activityLog,
+            ...prev.activityLog.filter((a: { id: string }) =>
+              !data.state.activityLog.some((b: { id: string }) => b.id === a.id)
+            ),
+          ].slice(0, 50),
+          // Accumulate economics
+          economics: {
+            ...data.state.economics,
+            totalInferenceCost: prev.economics.totalInferenceCost + data.state.economics.totalInferenceCost,
+            totalRevenue: prev.economics.totalRevenue + data.state.economics.totalRevenue,
+            cyclesRun: prev.economics.cyclesRun + 1,
+          },
+        }));
+        setDemoMode(data.state.demoMode || false);
+      }
+      return data;
+    } catch (err) {
+      console.error('Cycle error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const start = useCallback(() => {
+    setRunning(true);
+    setState(prev => ({ ...prev, status: 'running', startedAt: new Date().toISOString() }));
+    // Run first cycle immediately
+    doRunCycle();
+    // Then schedule recurring cycles
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      doRunCycle();
+    }, CYCLE_INTERVAL_MS);
+  }, [doRunCycle]);
+
+  const stop = useCallback(() => {
+    setRunning(false);
+    setState(prev => ({ ...prev, status: 'idle' }));
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const runCycle = useCallback(() => doRunCycle(), [doRunCycle]);
+
+  const launchToken = useCallback(async (tokenName: string, tokenSymbol: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'launch-token', tokenName, tokenSymbol }),
+      });
+      const data = await res.json();
+      if (data.state) setState(data.state);
+      return data;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const fetchState = useCallback(async () => {
     try {
@@ -54,54 +130,19 @@ export function useAgent() {
       if (res.ok) {
         const data = await res.json();
         if (data.demoMode !== undefined) setDemoMode(data.demoMode);
-        // Only update if the server has newer data (more cycles run)
-        // This prevents serverless cold starts from wiping client state
-        if (data.currentCycle > 0 && data.currentCycle >= (state?.currentCycle || 0)) {
-          setState(data);
-        }
       }
     } catch {}
-  }, [state?.currentCycle]);
+  }, []);
 
-  const sendAction = useCallback(
-    async (action: string, extra?: Record<string, unknown>) => {
-      setLoading(true);
-      try {
-        const res = await fetch('/api/agent', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action, ...extra }),
-        });
-        const data = await res.json();
-        // The POST response has the authoritative state from the cycle that just ran
-        if (data.state) {
-          setState(data.state);
-          setDemoMode(data.state.demoMode || false);
-        } else if (data.currentCycle) {
-          setState(data);
-        }
-        return data;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  const start = useCallback(
-    (config?: Record<string, unknown>) => sendAction('start', { config }),
-    [sendAction]
-  );
-  const stop = useCallback(() => sendAction('stop'), [sendAction]);
-  const runCycle = useCallback(() => sendAction('cycle'), [sendAction]);
-  const launchToken = useCallback(
-    (tokenName: string, tokenSymbol: string) =>
-      sendAction('launch-token', { tokenName, tokenSymbol }),
-    [sendAction]
-  );
-
-  // Fetch initial state (includes demoMode)
+  // Fetch initial demoMode on mount
   useEffect(() => { fetchState(); }, [fetchState]);
 
-  return { state, demoMode, loading, start, stop, runCycle, launchToken, fetchState };
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
+
+  return { state, demoMode, loading, running, start, stop, runCycle, launchToken, fetchState };
 }

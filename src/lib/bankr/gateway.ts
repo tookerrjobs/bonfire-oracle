@@ -15,7 +15,7 @@ export interface LLMCallResult {
   latencyMs: number;
 }
 
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 0; // No retries on serverless — each LLM call has a 15s timeout
 const RETRY_DELAY_MS = 1000;
 
 export async function callModel(
@@ -33,8 +33,11 @@ export async function callModel(
     try {
       const start = Date.now();
 
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
       const res = await fetch('https://llm.bankr.bot/v1/chat/completions', {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           'X-API-Key': BANKR_API_KEY,
@@ -50,6 +53,8 @@ export async function callModel(
           max_completion_tokens: options?.maxTokens ?? 2048,
         }),
       });
+
+      clearTimeout(timeout);
 
       if (!res.ok) {
         const errBody = await res.text();

@@ -29,9 +29,20 @@ export async function POST(req: NextRequest) {
       agent.stop();
       return NextResponse.json({ ok: true, state: agent.getState() });
 
-    case 'cycle':
-      await agent.runSingleCycle();
+    case 'cycle': {
+      // 50s timeout to stay within Vercel's 60s limit
+      const cyclePromise = agent.runSingleCycle();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Cycle timed out after 50s')), 50000)
+      );
+      try {
+        await Promise.race([cyclePromise, timeoutPromise]);
+      } catch (err) {
+        console.error('[API] Cycle error:', err);
+        // Still return current state even on timeout/error
+      }
       return NextResponse.json({ ok: true, state: agent.getState() });
+    }
 
     case 'config':
       agent.updateConfig(config);
