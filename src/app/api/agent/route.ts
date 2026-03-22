@@ -52,3 +52,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
   }
 }
+
+// Debug: check env
+export async function PUT() {
+  const key = process.env.BANKR_API_KEY || 'NOT_SET';
+  const hasKey = key.length > 10;
+  return Response.json({ 
+    hasKey, 
+    keyPrefix: key.slice(0, 8) + '...', 
+    keyLength: key.length 
+  });
+}
