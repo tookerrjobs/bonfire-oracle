@@ -45,12 +45,8 @@ export function useAgent() {
   const [loading, setLoading] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  // Poll for state updates every 5 seconds (SSE doesn't work well on serverless)
-  useEffect(() => {
-    fetchState();
-    const interval = setInterval(fetchState, 5000);
-    return () => clearInterval(interval);
-  }, [fetchState]);
+  // Fetch initial state once on mount
+  useEffect(() => { fetchState(); }, []);
 
   const fetchState = useCallback(async () => {
     try {
@@ -58,10 +54,14 @@ export function useAgent() {
       if (res.ok) {
         const data = await res.json();
         if (data.demoMode !== undefined) setDemoMode(data.demoMode);
-        setState(data);
+        // Only update if the server has newer data (more cycles run)
+        // This prevents serverless cold starts from wiping client state
+        if (data.currentCycle > 0 && data.currentCycle >= (state?.currentCycle || 0)) {
+          setState(data);
+        }
       }
     } catch {}
-  }, []);
+  }, [state?.currentCycle]);
 
   const sendAction = useCallback(
     async (action: string, extra?: Record<string, unknown>) => {
@@ -73,7 +73,13 @@ export function useAgent() {
           body: JSON.stringify({ action, ...extra }),
         });
         const data = await res.json();
-        if (data.state) setState(data.state);
+        // The POST response has the authoritative state from the cycle that just ran
+        if (data.state) {
+          setState(data.state);
+          setDemoMode(data.state.demoMode || false);
+        } else if (data.currentCycle) {
+          setState(data);
+        }
         return data;
       } finally {
         setLoading(false);
