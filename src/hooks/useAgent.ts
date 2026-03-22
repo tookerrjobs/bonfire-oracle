@@ -39,7 +39,7 @@ const INITIAL_STATE: AgentState = {
   bonfiresReputation: { accuracy: 0, totalPredictions: 0, communityTrust: 0.5 },
 };
 
-const CYCLE_INTERVAL_MS = 60000; // 60 seconds between auto-cycles
+const CYCLE_INTERVAL_MS = 45000; // 45 seconds between auto-cycles (balances LLM costs vs responsiveness)
 
 export function useAgent() {
   const [state, setState] = useState<AgentState>(INITIAL_STATE);
@@ -134,12 +134,15 @@ export function useAgent() {
     } catch {}
   }, []);
 
-  // Fetch initial demoMode on mount
-  useEffect(() => { fetchState(); }, [fetchState]);
-
-  // Cleanup interval on unmount
+  // Auto-start on mount — fully autonomous, no human intervention required
   useEffect(() => {
+    fetchState();
+    // Small delay to let the UI render first, then start autonomously
+    const bootTimer = setTimeout(() => {
+      start();
+    }, 2000);
     return () => {
+      clearTimeout(bootTimer);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);

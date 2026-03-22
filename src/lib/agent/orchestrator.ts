@@ -147,6 +147,15 @@ class AgentOrchestrator {
       console.warn('[SelfFund] Balance check failed:', err);
     }
 
+    // Detect if we already have a token from a previous session
+    // (balance response mentions ORACLE = token was launched before)
+    if (!this.state.tokenLaunched && this.state.wallet.balanceRaw.toLowerCase().includes('oracle')) {
+      this.state.tokenLaunched = true;
+      this.state.tokenName = 'BonfireOracle';
+      this.state.tokenSymbol = 'ORACLE';
+      console.log('[SelfFund] Detected existing $ORACLE token from previous session');
+    }
+
     // 2. Auto-claim token fees if we've launched a token
     if (this.state.tokenLaunched && this.config.autoClaimFees) {
       try {

@@ -10,7 +10,7 @@ import { OnchainActivity } from '@/components/dashboard/onchain-activity';
 import { BonfiresPanel } from '@/components/dashboard/bonfires-panel';
 
 export default function Home() {
-  const { state, demoMode, loading, start, stop, runCycle, launchToken } = useAgent();
+  const { state, demoMode, loading, running, start, stop, runCycle, launchToken } = useAgent();
 
   return (
     <div className="min-h-screen font-[family-name:var(--font-geist-sans)]">
@@ -18,6 +18,7 @@ export default function Home() {
         state={state}
         demoMode={demoMode}
         loading={loading}
+        running={running}
         onStart={() => start()}
         onStop={stop}
         onRunCycle={runCycle}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Flame, Play, Square, RotateCw, Rocket, Loader2, AlertTriangle } from 'lucide-react';
 import type { AgentState } from '@/lib/agent/types';
 
@@ -7,6 +8,7 @@ interface HeaderProps {
   state: AgentState;
   demoMode: boolean;
   loading: boolean;
+  running: boolean;
   onStart: () => void;
   onStop: () => void;
   onRunCycle: () => void;
@@ -20,7 +22,26 @@ const STATUS_COLORS: Record<string, string> = {
   error: 'bg-red-500',
 };
 
-export function Header({ state, demoMode, loading, onStart, onStop, onRunCycle, onLaunchToken }: HeaderProps) {
+function useUptime(startedAt: string | null) {
+  const [uptime, setUptime] = useState('0s');
+  useEffect(() => {
+    if (!startedAt) { setUptime('0s'); return; }
+    const start = new Date(startedAt).getTime();
+    const tick = () => {
+      const secs = Math.floor((Date.now() - start) / 1000);
+      if (secs < 60) setUptime(`${secs}s`);
+      else if (secs < 3600) setUptime(`${Math.floor(secs / 60)}m ${secs % 60}s`);
+      else setUptime(`${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`);
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [startedAt]);
+  return uptime;
+}
+
+export function Header({ state, demoMode, loading, running, onStart, onStop, onRunCycle, onLaunchToken }: HeaderProps) {
+  const uptime = useUptime(state.startedAt);
   return (
     <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,17 +61,28 @@ export function Header({ state, demoMode, loading, onStart, onStop, onRunCycle, 
           </div>
 
           {/* Status Badge */}
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${STATUS_COLORS[state.status]}`} />
-            <span className="text-sm text-zinc-400 capitalize">{state.status}</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${running ? 'bg-emerald-500 animate-pulse' : STATUS_COLORS[state.status]}`} />
+              <span className="text-sm text-zinc-400 capitalize">{running ? 'autonomous' : state.status}</span>
+            </div>
             {state.currentCycle > 0 && (
-              <span className="text-xs text-zinc-600 ml-2">Cycle #{state.currentCycle}</span>
+              <span className="text-xs text-zinc-500 font-mono">Cycle #{state.currentCycle}</span>
+            )}
+            {running && state.startedAt && (
+              <span className="text-xs text-emerald-400/70 font-mono">Uptime: {uptime}</span>
+            )}
+            {loading && (
+              <span className="text-xs text-cyan-400/70 flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                analyzing...
+              </span>
             )}
           </div>
 
           {/* Controls */}
           <div className="flex items-center gap-2">
-            {state.status !== 'running' ? (
+            {!running ? (
               <button
                 onClick={onStart}
                 disabled={loading}
