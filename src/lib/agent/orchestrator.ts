@@ -83,6 +83,10 @@ class AgentOrchestrator {
     }
   }
 
+  getLastCycleTimestamp(): number | null {
+    return this.state.lastCycleAt ? new Date(this.state.lastCycleAt).getTime() : null;
+  }
+
   getState(): AgentState {
     this.state.economics = economics.getSnapshot();
     this.state.wallet.inferenceSpend = this.state.economics.totalInferenceCost;

@@ -30,6 +30,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, state: agent.getState() });
 
     case 'cycle': {
+      // Rate limit: only allow 1 cycle per 45 seconds (shared across all visitors)
+      const now = Date.now();
+      const lastCycle = agent.getLastCycleTimestamp();
+      if (lastCycle && now - lastCycle < 45000) {
+        // Return cached state from last cycle — don't run again
+        return NextResponse.json({ ok: true, state: agent.getState(), cached: true });
+      }
+
       // 50s timeout to stay within Vercel's 60s limit
       const cyclePromise = agent.runSingleCycle();
       const timeoutPromise = new Promise((_, reject) =>
@@ -39,7 +47,6 @@ export async function POST(req: NextRequest) {
         await Promise.race([cyclePromise, timeoutPromise]);
       } catch (err) {
         console.error('[API] Cycle error:', err);
-        // Still return current state even on timeout/error
       }
       return NextResponse.json({ ok: true, state: agent.getState() });
     }
