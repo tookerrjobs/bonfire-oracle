@@ -58,7 +58,8 @@ Only return valid JSON, no markdown or explanation.`,
       latencyMs: result.latencyMs,
       timestamp: new Date().toISOString(),
     };
-  } catch {
+  } catch (err) {
+    console.error(`[Scanner] Failed to parse Gemini response:`, err, `\nRaw text: ${result.text?.slice(0, 500)}`);
     return {
       topics: [],
       signals: [],
@@ -234,9 +235,11 @@ export async function runFullPipeline(
 
   // Step 2: Run scanner (Gemini Flash)
   const scan = await runScan(bonfiresInsight);
+  console.log(`[Pipeline] Scanner returned ${scan.signals.length} signals:`, scan.signals.map(s => `${s.token}(${s.strength.toFixed(2)})`).join(', ') || 'NONE');
 
   // Step 3: For each signal above threshold, run full committee
-  const strongSignals = scan.signals.filter((s) => s.strength >= 0.5);
+  const strongSignals = scan.signals.filter((s) => s.strength >= 0.2);
+  console.log(`[Pipeline] ${strongSignals.length} signals above threshold (0.2)`);
 
   for (const signal of strongSignals.slice(0, 3)) {
     const decisionId = `dec_${++decisionCounter}_${Date.now()}`;
