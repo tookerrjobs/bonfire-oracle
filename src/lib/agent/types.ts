@@ -58,7 +58,7 @@ export interface AgentConfig {
 export const DEFAULT_AGENT_CONFIG: AgentConfig = {
   cycleIntervalMs: Number(process.env.AGENT_CYCLE_INTERVAL_MS) || 300000,
   maxPositionSizeUsd: Number(process.env.AGENT_MAX_POSITION_SIZE_USD) || 5,
-  minConsensusScore: Number(process.env.AGENT_MIN_CONSENSUS_SCORE) || 0.6,
+  minConsensusScore: Number(process.env.AGENT_MIN_CONSENSUS_SCORE) || 0.3,
   topics: ['ETH', 'Base ecosystem', 'DeFi governance', 'AI tokens', 'BNKR'],
   enableExecution: true,
   enableTokenLaunch: false,
