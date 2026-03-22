@@ -207,12 +207,10 @@ class AgentOrchestrator {
     this.state.lastCycleAt = new Date().toISOString();
     this.notify();
 
-    // ── BONFIRES REPUTATION: track agent standing in community ──
-    try {
-      this.state.bonfiresReputation = await bonfires.getAgentReputation();
-    } catch {
-      // Keep previous reputation on failure
-    }
+    // ── BONFIRES REPUTATION: track agent standing (non-blocking) ──
+    bonfires.getAgentReputation().then(rep => {
+      this.state.bonfiresReputation = rep;
+    }).catch(() => {});
 
     try {
       let decisions: CommitteeDecision[];
@@ -221,7 +219,11 @@ class AgentOrchestrator {
         decisions = await runDemoPipeline();
       } else {
         // ── SELF-FUNDING CHECK: balance, fees, auto-launch ──
-        await this.selfFundingCheck();
+        // Run in background — don't block the analysis pipeline
+        // (Bankr Agent API polling can take 30s+ which exceeds Vercel's timeout)
+        this.selfFundingCheck().catch(err =>
+          console.warn('[Orchestrator] Self-funding check failed (non-blocking):', err)
+        );
 
         // ── ANALYSIS PIPELINE: 3-model committee ──
         logActivity(
@@ -273,10 +275,15 @@ class AgentOrchestrator {
           economics.recordDecisionCosts(decision.id, modelCalls);
           cycleTotalCost += decision.totalInferenceCost;
 
-          // ── BONFIRES CONSENSUS GATE: validate trade against community ──
+          // ── BONFIRES CONSENSUS GATE: validate trade against community (3s timeout) ──
           if (decision.finalAction !== 'skip' && decision.finalAction !== 'hold') {
             try {
-              const consensus = await bonfires.getCommunityConsensus(decision.token);
+              const consensus = await Promise.race([
+                bonfires.getCommunityConsensus(decision.token),
+                new Promise<{sentiment: number; confidence: number; sampleSize: number}>((_, reject) =>
+                  setTimeout(() => reject(new Error('timeout')), 3000)
+                ),
+              ]);
               decision.communityConsensus = consensus;
 
               // If community strongly disagrees (>30% confidence, opposite sentiment), downgrade to hold
@@ -369,8 +376,8 @@ class AgentOrchestrator {
             decision.status = decision.status === 'analyzing' ? 'decided' : decision.status;
           }
 
-          // ── PUBLISH BACK TO BONFIRES: agent becomes community participant ──
-          await bonfires.publishDecision({
+          // ── PUBLISH BACK TO BONFIRES: agent becomes community participant (non-blocking) ──
+          bonfires.publishDecision({
             token: decision.token,
             action: decision.finalAction,
             confidence: decision.consensusScore,
