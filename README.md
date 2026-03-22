@@ -1,10 +1,14 @@
 # Bonfire Oracle — Self-Funding Autonomous Trading Agent
 
+**Live Demo:** [https://bonfire-oracle.vercel.app](https://bonfire-oracle.vercel.app)
+
 > **An autonomous AI agent that pays for its own intelligence.**
 >
-> Launches a token on Base, collects trading fees, and routes that revenue to fund multi-model inference — creating a self-sustaining onchain intelligence loop.
+> Launches a token on Base, collects trading fees, and routes that revenue to fund multi-model inference — creating a self-sustaining onchain intelligence loop. Deeply integrated with Bonfires community intelligence for consensus-gated trading.
 
-Built for the **Bankr $5,000 Bounty** — Best Bankr LLM Gateway Use.
+Built for **The Synthesis** hackathon — **Bankr $5,000 Bounty** (Best Bankr LLM Gateway Use).
+
+**$ORACLE token live on Base** — generating real trading fee revenue autonomously.
 
 ---
 
