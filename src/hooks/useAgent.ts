@@ -45,33 +45,12 @@ export function useAgent() {
   const [loading, setLoading] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  // SSE connection for real-time updates
+  // Poll for state updates every 5 seconds (SSE doesn't work well on serverless)
   useEffect(() => {
-    const es = new EventSource('/api/agent/stream');
-    eventSourceRef.current = es;
-
-    es.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        setState(data);
-      } catch {}
-    };
-
-    es.onerror = () => {
-      es.close();
-      // Reconnect after 3s
-      setTimeout(() => {
-        if (eventSourceRef.current === es) {
-          fetchState();
-        }
-      }, 3000);
-    };
-
-    return () => {
-      es.close();
-      eventSourceRef.current = null;
-    };
-  }, []);
+    fetchState();
+    const interval = setInterval(fetchState, 5000);
+    return () => clearInterval(interval);
+  }, [fetchState]);
 
   const fetchState = useCallback(async () => {
     try {
