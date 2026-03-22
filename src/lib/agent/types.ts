@@ -62,6 +62,6 @@ export const DEFAULT_AGENT_CONFIG: AgentConfig = {
   topics: ['ETH', 'Base ecosystem', 'DeFi governance', 'AI tokens', 'BNKR'],
   enableExecution: true,
   enableTokenLaunch: false,
-  autoLaunchToken: true,
+  autoLaunchToken: false, // Token already launched — don't create duplicates
   autoClaimFees: true,
 };

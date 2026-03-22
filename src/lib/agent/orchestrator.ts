@@ -47,9 +47,9 @@ class AgentOrchestrator {
     economics: economics.getSnapshot(),
     error: null,
     startedAt: null,
-    tokenLaunched: false,
-    tokenName: null,
-    tokenSymbol: null,
+    tokenLaunched: true,
+    tokenName: 'BonfireOracle',
+    tokenSymbol: 'ORACLE',
     wallet: {
       balanceRaw: 'unknown',
       lastCheckedAt: null,
