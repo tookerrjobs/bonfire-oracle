@@ -232,11 +232,15 @@ class AgentOrchestrator {
         decisions = await runDemoPipeline();
       } else {
         // ── SELF-FUNDING CHECK: balance, fees, auto-launch ──
-        // Run in background — don't block the analysis pipeline
-        // (Bankr Agent API polling can take 30s+ which exceeds Vercel's timeout)
-        this.selfFundingCheck().catch(err =>
-          console.warn('[Orchestrator] Self-funding check failed (non-blocking):', err)
-        );
+        // Run with a 20s timeout — get wallet data before LLM calls if possible
+        try {
+          await Promise.race([
+            this.selfFundingCheck(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 20000)),
+          ]);
+        } catch (err) {
+          console.warn('[Orchestrator] Self-funding check timed out or failed:', err);
+        }
 
         // ── ANALYSIS PIPELINE: 3-model committee ──
         logActivity(
