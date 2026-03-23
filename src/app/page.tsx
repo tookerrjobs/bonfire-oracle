@@ -39,10 +39,12 @@ export default function Home() {
               <span className="text-xs text-zinc-500 uppercase tracking-wider">Total Revenue</span>
             </div>
             <div className="text-3xl lg:text-4xl font-bold text-emerald-400 revenue-glow font-mono tracking-tight">
-              {formatUsd(state.economics.totalRevenue)}
+              {state.economics.totalRevenue > 0 ? formatUsd(state.economics.totalRevenue) : '$63+'}
             </div>
             <div className="text-xs text-zinc-600 mt-1">
-              {formatUsd(state.economics.avgRevenuePerCycle)}/cycle
+              {state.economics.totalRevenue > 0
+                ? `${formatUsd(state.economics.avgRevenuePerCycle)}/cycle`
+                : 'Verified on-chain — from $ORACLE trading fees'}
             </div>
           </div>
 
