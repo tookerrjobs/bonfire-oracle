@@ -38,7 +38,7 @@ export function OnchainActivity({ state }: OnchainActivityProps) {
           <h2 className="font-semibold text-lg">Onchain Proof</h2>
         </div>
         <a
-          href="https://basescan.org"
+          href="https://basescan.org/address/0x3ff0f48e048baa017885cb2e834830229c7e8e30"
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-zinc-500 hover:text-emerald-400 transition-colors flex items-center gap-1"
@@ -56,9 +56,14 @@ export function OnchainActivity({ state }: OnchainActivityProps) {
         </div>
         <div className="text-lg text-emerald-300 font-mono break-all leading-relaxed font-bold">
           {wallet.balanceRaw === 'unknown' ? (
-            <span className="text-gray-500 italic text-sm font-normal">
-              Will populate on first cycle...
-            </span>
+            <div>
+              <a href="https://basescan.org/address/0x3ff0f48e048baa017885cb2e834830229c7e8e30"
+                target="_blank" rel="noopener"
+                className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors underline decoration-emerald-400/30">
+                0x3ff0...8e30
+              </a>
+              <div className="text-xs text-zinc-500 font-normal mt-1">Balance updates on next cycle — <a href="https://basescan.org/address/0x3ff0f48e048baa017885cb2e834830229c7e8e30" target="_blank" rel="noopener" className="text-cyan-400 hover:text-cyan-300">verify live on Basescan</a></div>
+            </div>
           ) : (
             wallet.balanceRaw.slice(0, 300)
           )}
