@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Flame, Brain, Wallet, Coins, ArrowRight } from 'lucide-react';
 import type { AgentState } from '@/lib/agent/types';
 
@@ -10,8 +11,18 @@ interface FlywheelDiagramProps {
 export function FlywheelDiagram({ state }: FlywheelDiagramProps) {
   const isRunning = state.status === 'running';
 
+  // Cycle through active steps when running
+  const [activeStep, setActiveStep] = useState(0);
+  useEffect(() => {
+    if (!isRunning) { setActiveStep(0); return; }
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev % 4) + 1);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isRunning]);
+
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+    <div className="glass-panel rounded-xl p-5 fade-in">
       <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4">
         Autonomous Flywheel
       </h2>
@@ -61,21 +72,21 @@ export function FlywheelDiagram({ state }: FlywheelDiagramProps) {
           />
         </div>
 
-        {/* Flow arrows (static, don't spin) */}
+        {/* Flow arrows (animated when running) */}
         <div className="absolute inset-0 pointer-events-none">
-          <FlowArrow from="top" to="right" active={isRunning} />
-          <FlowArrow from="right" to="bottom" active={isRunning} />
-          <FlowArrow from="bottom" to="left" active={isRunning} />
-          <FlowArrow from="left" to="top" active={isRunning} />
+          <FlowArrow from="top" to="right" active={isRunning} highlight={activeStep === 1} />
+          <FlowArrow from="right" to="bottom" active={isRunning} highlight={activeStep === 2} />
+          <FlowArrow from="bottom" to="left" active={isRunning} highlight={activeStep === 3} />
+          <FlowArrow from="left" to="top" active={isRunning} highlight={activeStep === 4} />
         </div>
       </div>
 
       {/* Legend */}
       <div className="mt-4 pt-4 border-t border-zinc-800 space-y-1.5">
-        <FlowStep num={1} text="Bonfires surfaces community alpha" active={isRunning} />
-        <FlowStep num={2} text="3 LLMs analyze via Bankr Gateway" active={isRunning} />
-        <FlowStep num={3} text="Bankr wallet executes onchain" active={isRunning} />
-        <FlowStep num={4} text="Token fees fund next inference cycle" active={isRunning} />
+        <FlowStep num={1} text="Bonfires surfaces community alpha" active={isRunning} highlighted={activeStep === 1} />
+        <FlowStep num={2} text="3 LLMs analyze via Bankr Gateway" active={isRunning} highlighted={activeStep === 2} />
+        <FlowStep num={3} text="Bankr wallet executes onchain" active={isRunning} highlighted={activeStep === 3} />
+        <FlowStep num={4} text="Token fees fund next inference cycle" active={isRunning} highlighted={activeStep === 4} />
       </div>
     </div>
   );
@@ -123,21 +134,52 @@ function FlywheelNode({
   );
 }
 
-function FlowArrow({ from, to, active }: { from: string; to: string; active: boolean }) {
-  return null; // CSS arrows are complex; the legend below serves the purpose
+function FlowArrow({ from, to, active, highlight }: { from: string; to: string; active: boolean; highlight: boolean }) {
+  // Position arrows between nodes
+  const arrowPositions: Record<string, { top: string; left: string; rotate: string }> = {
+    'top-right': { top: '18%', left: '72%', rotate: 'rotate(45deg)' },
+    'right-bottom': { top: '72%', left: '72%', rotate: 'rotate(135deg)' },
+    'bottom-left': { top: '72%', left: '18%', rotate: 'rotate(225deg)' },
+    'left-top': { top: '18%', left: '18%', rotate: 'rotate(315deg)' },
+  };
+
+  const key = `${from}-${to}`;
+  const pos = arrowPositions[key];
+  if (!pos) return null;
+
+  return (
+    <div
+      className={`absolute w-6 h-6 flex items-center justify-center transition-all duration-500 ${
+        highlight ? 'flow-arrow-active scale-125' : active ? 'opacity-40' : 'opacity-20'
+      }`}
+      style={{
+        top: pos.top,
+        left: pos.left,
+        transform: `translate(-50%, -50%) ${pos.rotate}`,
+      }}
+    >
+      <ArrowRight className={`w-4 h-4 ${highlight ? 'text-orange-400' : active ? 'text-zinc-500' : 'text-zinc-700'}`} />
+    </div>
+  );
 }
 
-function FlowStep({ num, text, active }: { num: number; text: string; active: boolean }) {
+function FlowStep({ num, text, active, highlighted }: { num: number; text: string; active: boolean; highlighted: boolean }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className={`flex items-center gap-2 py-0.5 px-1 rounded transition-all duration-300 ${highlighted ? 'flow-step-highlight' : ''}`}>
       <span
-        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-          active ? 'bg-orange-900/50 text-orange-400 border border-orange-800/50' : 'bg-zinc-800 text-zinc-500'
+        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
+          highlighted
+            ? 'bg-orange-500/30 text-orange-300 border border-orange-500/50 shadow-[0_0_8px_rgba(249,115,22,0.3)]'
+            : active
+            ? 'bg-orange-900/50 text-orange-400 border border-orange-800/50'
+            : 'bg-zinc-800 text-zinc-500'
         }`}
       >
         {num}
       </span>
-      <span className={`text-xs ${active ? 'text-zinc-300' : 'text-zinc-600'}`}>{text}</span>
+      <span className={`text-xs transition-colors duration-300 ${highlighted ? 'text-orange-300 font-medium' : active ? 'text-zinc-300' : 'text-zinc-600'}`}>
+        {text}
+      </span>
     </div>
   );
 }

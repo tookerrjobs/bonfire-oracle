@@ -43,7 +43,7 @@ function useUptime(startedAt: string | null) {
 export function Header({ state, demoMode, loading, running, onStart, onStop, onRunCycle, onLaunchToken }: HeaderProps) {
   const uptime = useUptime(state.startedAt);
   return (
-    <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-50">
+    <header className="header-gradient-border bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo + Title */}
@@ -63,8 +63,14 @@ export function Header({ state, demoMode, loading, running, onStart, onStop, onR
           {/* Status Badge */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${running ? 'bg-emerald-500 animate-pulse' : STATUS_COLORS[state.status]}`} />
-              <span className="text-sm text-zinc-400 capitalize">{running ? 'autonomous' : state.status}</span>
+              <span className={`w-2.5 h-2.5 rounded-full ${running ? 'bg-emerald-400 status-dot-glow' : STATUS_COLORS[state.status]}`} />
+              {running ? (
+                <span className="text-sm font-medium text-emerald-400 autonomous-badge px-2 py-0.5 rounded-full">
+                  Autonomous
+                </span>
+              ) : (
+                <span className="text-sm text-zinc-400 capitalize">{state.status}</span>
+              )}
             </div>
             {state.currentCycle > 0 && (
               <span className="text-xs text-zinc-500 font-mono">Cycle #{state.currentCycle}</span>

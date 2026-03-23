@@ -30,33 +30,60 @@ export function OnchainActivity({ state }: OnchainActivityProps) {
   const { wallet, activityLog } = state;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+    <div className="glass-panel rounded-xl p-5 fade-in">
       {/* Wallet Status */}
-      <div className="flex items-center gap-2 mb-4">
-        <Wallet className="w-5 h-5 text-emerald-400" />
-        <h2 className="font-semibold text-lg">Onchain Proof</h2>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Wallet className="w-5 h-5 text-emerald-400" />
+          <h2 className="font-semibold text-lg">Onchain Proof</h2>
+        </div>
+        <a
+          href="https://basescan.org"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-zinc-500 hover:text-emerald-400 transition-colors flex items-center gap-1"
+        >
+          Basescan <ArrowUpRight className="w-3 h-3" />
+        </a>
       </div>
 
       {/* Wallet Balance Card */}
       <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 mb-4">
-        <div className="text-xs text-gray-400 mb-1 uppercase tracking-wider">
-          Bankr Wallet Balance
+        <div className="flex items-center justify-between mb-1">
+          <div className="text-xs text-gray-400 uppercase tracking-wider">
+            Bankr Wallet Balance
+          </div>
         </div>
-        <div className="text-sm text-gray-200 font-mono break-all leading-relaxed">
+        <div className="text-lg text-emerald-300 font-mono break-all leading-relaxed font-bold">
           {wallet.balanceRaw === 'unknown' ? (
-            <span className="text-gray-500 italic">
+            <span className="text-gray-500 italic text-sm font-normal">
               Will populate on first cycle...
             </span>
           ) : (
             wallet.balanceRaw.slice(0, 300)
           )}
         </div>
-        {wallet.lastCheckedAt && (
-          <div className="text-xs text-gray-500 mt-2">
-            Last checked:{' '}
-            {new Date(wallet.lastCheckedAt).toLocaleTimeString()}
-          </div>
-        )}
+        <div className="flex items-center gap-3 mt-2">
+          {wallet.lastCheckedAt && (
+            <span className="text-xs text-gray-500">
+              Last checked:{' '}
+              {new Date(wallet.lastCheckedAt).toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Token Contract Link */}
+      <div className="rounded-lg border border-orange-500/20 bg-orange-500/5 p-3 mb-4">
+        <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">$ORACLE Token</div>
+        <a
+          href="https://bankr.bot"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-orange-400 hover:text-orange-300 transition-colors font-mono flex items-center gap-1.5"
+        >
+          View on bankr.bot <ArrowUpRight className="w-3 h-3" />
+        </a>
       </div>
 
       {/* Self-Funding Metrics */}

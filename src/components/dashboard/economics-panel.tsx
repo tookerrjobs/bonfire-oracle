@@ -12,13 +12,13 @@ export function EconomicsPanel({ economics }: EconomicsPanelProps) {
   const isPositive = economics.netPnl >= 0;
 
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+    <div className="glass-panel rounded-xl p-5 fade-in">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
           Self-Funding Economics
         </h2>
         {economics.selfSustaining ? (
-          <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-900/40 text-emerald-400 text-xs font-medium rounded-full border border-emerald-800/50">
+          <span className="flex items-center gap-1 px-2.5 py-1 bg-emerald-900/40 text-emerald-400 text-xs font-medium rounded-full border border-emerald-800/50 badge-pulse">
             <Battery className="w-3 h-3" />
             Self-Sustaining
           </span>
@@ -30,20 +30,41 @@ export function EconomicsPanel({ economics }: EconomicsPanelProps) {
         )}
       </div>
 
-      {/* Net PnL Hero */}
-      <div className="mb-5 p-4 rounded-lg bg-zinc-950 border border-zinc-800">
-        <div className="text-xs text-zinc-500 mb-1">Net Inference ROI</div>
-        <div className={`text-3xl font-bold tracking-tight ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
-          {formatPercent(economics.roi)}
+      {/* Revenue Hero */}
+      <div className="mb-4 p-4 rounded-lg bg-zinc-950/80 border border-emerald-900/30">
+        <div className="text-xs text-zinc-500 mb-1">Total Revenue</div>
+        <div className="text-4xl font-bold tracking-tight text-emerald-400 revenue-glow font-mono">
+          {formatUsd(economics.totalRevenue)}
         </div>
-        <div className="flex items-center gap-1 mt-1">
+        <div className="text-xs text-zinc-600 mt-1">
+          {formatUsd(economics.avgRevenuePerCycle)}/cycle avg
+        </div>
+      </div>
+
+      {/* Net PnL + ROI */}
+      <div className="mb-5 p-4 rounded-lg bg-zinc-950/60 border border-zinc-800">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs text-zinc-500 mb-1">Net Inference ROI</div>
+            <div className={`text-3xl font-bold tracking-tight ${isPositive ? 'text-emerald-400 text-glow-green' : 'text-red-400'}`}>
+              {formatPercent(economics.roi)}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-xs text-zinc-500 mb-1">Net P&L</div>
+            <div className={`text-xl font-bold tracking-tight ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+              {formatUsd(economics.netPnl)}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 mt-2">
           {isPositive ? (
             <TrendingUp className="w-3 h-3 text-emerald-500" />
           ) : (
             <TrendingDown className="w-3 h-3 text-red-500" />
           )}
           <span className={`text-xs ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
-            {formatUsd(economics.netPnl)} net
+            {isPositive ? 'Profitable' : 'Building'} — {formatUsd(economics.totalInferenceCost)} spent
           </span>
         </div>
       </div>
