@@ -39,7 +39,7 @@ const INITIAL_STATE: AgentState = {
   bonfiresReputation: { accuracy: 0, totalPredictions: 0, communityTrust: 0.5 },
 };
 
-const CYCLE_INTERVAL_MS = 45000; // 45 seconds between auto-cycles (balances LLM costs vs responsiveness)
+const CYCLE_INTERVAL_MS = 300000; // 5 minutes between auto-cycles (preserves daily API limit of 100 calls)
 
 export function useAgent() {
   const [state, setState] = useState<AgentState>(INITIAL_STATE);
