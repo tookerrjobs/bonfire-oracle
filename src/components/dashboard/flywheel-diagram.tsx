@@ -11,15 +11,14 @@ interface FlywheelDiagramProps {
 export function FlywheelDiagram({ state }: FlywheelDiagramProps) {
   const isRunning = state.status === 'running';
 
-  // Cycle through active steps when running
-  const [activeStep, setActiveStep] = useState(0);
+  // Always animate the flywheel — shows the concept even on first visit
+  const [activeStep, setActiveStep] = useState(1);
   useEffect(() => {
-    if (!isRunning) { setActiveStep(0); return; }
     const interval = setInterval(() => {
       setActiveStep((prev) => (prev % 4) + 1);
-    }, 3000);
+    }, 2500);
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, []);
 
   return (
     <div className="glass-panel rounded-xl p-5 fade-in">
@@ -29,7 +28,7 @@ export function FlywheelDiagram({ state }: FlywheelDiagramProps) {
 
       <div className="relative">
         {/* Circular flywheel visualization */}
-        <div className={`relative w-full aspect-square max-w-[280px] mx-auto ${isRunning ? 'animate-[spin_20s_linear_infinite]' : ''}`}>
+        <div className="relative w-full aspect-square max-w-[280px] mx-auto">
           {/* Center */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-orange-950/50 border border-orange-800/50 flex items-center justify-center">
@@ -43,7 +42,7 @@ export function FlywheelDiagram({ state }: FlywheelDiagramProps) {
             label="Bonfires"
             sub="Community Intel"
             position="top"
-            active={isRunning}
+            active={true}
             color="orange"
           />
           <FlywheelNode
@@ -51,7 +50,7 @@ export function FlywheelDiagram({ state }: FlywheelDiagramProps) {
             label="LLM Gateway"
             sub="Multi-Model AI"
             position="right"
-            active={isRunning}
+            active={true}
             color="violet"
           />
           <FlywheelNode
@@ -59,7 +58,7 @@ export function FlywheelDiagram({ state }: FlywheelDiagramProps) {
             label="Bankr Wallet"
             sub="Onchain Execution"
             position="bottom"
-            active={isRunning}
+            active={true}
             color="blue"
           />
           <FlywheelNode
@@ -67,26 +66,26 @@ export function FlywheelDiagram({ state }: FlywheelDiagramProps) {
             label="Token Fees"
             sub="Self-Funding"
             position="left"
-            active={isRunning}
+            active={true}
             color="emerald"
           />
         </div>
 
         {/* Flow arrows (animated when running) */}
         <div className="absolute inset-0 pointer-events-none">
-          <FlowArrow from="top" to="right" active={isRunning} highlight={activeStep === 1} />
-          <FlowArrow from="right" to="bottom" active={isRunning} highlight={activeStep === 2} />
-          <FlowArrow from="bottom" to="left" active={isRunning} highlight={activeStep === 3} />
-          <FlowArrow from="left" to="top" active={isRunning} highlight={activeStep === 4} />
+          <FlowArrow from="top" to="right" active={true} highlight={activeStep === 1} />
+          <FlowArrow from="right" to="bottom" active={true} highlight={activeStep === 2} />
+          <FlowArrow from="bottom" to="left" active={true} highlight={activeStep === 3} />
+          <FlowArrow from="left" to="top" active={true} highlight={activeStep === 4} />
         </div>
       </div>
 
       {/* Legend */}
       <div className="mt-4 pt-4 border-t border-zinc-800 space-y-1.5">
-        <FlowStep num={1} text="Bonfires surfaces community alpha" active={isRunning} highlighted={activeStep === 1} />
-        <FlowStep num={2} text="3 LLMs analyze via Bankr Gateway" active={isRunning} highlighted={activeStep === 2} />
-        <FlowStep num={3} text="Bankr wallet executes onchain" active={isRunning} highlighted={activeStep === 3} />
-        <FlowStep num={4} text="Token fees fund next inference cycle" active={isRunning} highlighted={activeStep === 4} />
+        <FlowStep num={1} text="Bonfires surfaces community alpha" active={true} highlighted={activeStep === 1} />
+        <FlowStep num={2} text="3 LLMs analyze via Bankr Gateway" active={true} highlighted={activeStep === 2} />
+        <FlowStep num={3} text="Bankr wallet executes onchain" active={true} highlighted={activeStep === 3} />
+        <FlowStep num={4} text="Token fees fund next inference cycle" active={true} highlighted={activeStep === 4} />
       </div>
     </div>
   );

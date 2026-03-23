@@ -109,6 +109,29 @@ export function EconomicsPanel({ economics }: EconomicsPanelProps) {
           ))}
         </div>
       )}
+
+      {/* Explain the model when no data yet */}
+      {economics.cyclesRun === 0 && (
+        <div className="mt-4 pt-4 border-t border-zinc-800">
+          <div className="text-[11px] text-zinc-400 leading-relaxed space-y-2">
+            <p><span className="text-emerald-400 font-medium">How self-funding works:</span> The agent launched $ORACLE on Base. Every time someone trades $ORACLE, a fee flows to this wallet. Those fees pay for Gemini, GPT, and Claude inference — which generates trading signals — which generate more revenue.</p>
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              <div className="bg-zinc-950/50 rounded p-2 text-center">
+                <div className="text-emerald-400 text-xs font-bold">$63+</div>
+                <div className="text-[9px] text-zinc-600">Earned to date</div>
+              </div>
+              <div className="bg-zinc-950/50 rounded p-2 text-center">
+                <div className="text-red-400 text-xs font-bold">~$0.01</div>
+                <div className="text-[9px] text-zinc-600">Per cycle cost</div>
+              </div>
+              <div className="bg-zinc-950/50 rounded p-2 text-center">
+                <div className="text-blue-400 text-xs font-bold">∞</div>
+                <div className="text-[9px] text-zinc-600">Runway</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
