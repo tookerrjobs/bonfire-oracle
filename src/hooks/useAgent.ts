@@ -48,6 +48,31 @@ export function useAgent() {
   const [running, setRunning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Load persisted economics from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('bonfire_oracle_economics');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setState(prev => ({
+          ...prev,
+          economics: { ...prev.economics, ...parsed },
+        }));
+      }
+    } catch {}
+  }, []);
+
+  const persistEconomics = useCallback((econ: typeof INITIAL_STATE.economics) => {
+    try {
+      localStorage.setItem('bonfire_oracle_economics', JSON.stringify({
+        totalInferenceCost: econ.totalInferenceCost,
+        totalRevenue: econ.totalRevenue,
+        cyclesRun: econ.cyclesRun,
+        decisionsExecuted: econ.decisionsExecuted,
+      }));
+    } catch {}
+  }, []);
+
   const doRunCycle = useCallback(async () => {
     setLoading(true);
     try {
@@ -58,23 +83,25 @@ export function useAgent() {
       });
       const data = await res.json();
       if (data.state) {
-        setState(prev => ({
-          ...data.state,
-          // Accumulate activity log across cycles (server loses state between calls)
-          activityLog: [
-            ...data.state.activityLog,
-            ...prev.activityLog.filter((a: { id: string }) =>
-              !data.state.activityLog.some((b: { id: string }) => b.id === a.id)
-            ),
-          ].slice(0, 50),
-          // Accumulate economics
-          economics: {
+        setState(prev => {
+          const newEconomics = {
             ...data.state.economics,
             totalInferenceCost: prev.economics.totalInferenceCost + data.state.economics.totalInferenceCost,
             totalRevenue: prev.economics.totalRevenue + data.state.economics.totalRevenue,
             cyclesRun: prev.economics.cyclesRun + 1,
-          },
-        }));
+          };
+          persistEconomics(newEconomics);
+          return {
+            ...data.state,
+            activityLog: [
+              ...data.state.activityLog,
+              ...prev.activityLog.filter((a: { id: string }) =>
+                !data.state.activityLog.some((b: { id: string }) => b.id === a.id)
+              ),
+            ].slice(0, 50),
+            economics: newEconomics,
+          };
+        });
         setDemoMode(data.state.demoMode || false);
       }
       return data;
