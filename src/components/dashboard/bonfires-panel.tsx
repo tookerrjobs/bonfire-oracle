@@ -29,7 +29,7 @@ export function BonfiresPanel({ state }: BonfiresPanelProps) {
         : 'text-red-400';
 
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+    <div className="glass-panel rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
           <Flame className="w-4 h-4 text-orange-400" />
@@ -42,20 +42,20 @@ export function BonfiresPanel({ state }: BonfiresPanelProps) {
       </div>
 
       {/* Agent Reputation */}
-      <div className="mb-5 p-4 rounded-lg bg-zinc-950 border border-zinc-800">
-        <div className="text-xs text-zinc-500 mb-2">Agent Reputation</div>
+      <div className="mb-5 p-4 rounded-lg bg-zinc-950/80 border border-zinc-800">
+        <div className="text-xs text-zinc-500 mb-2">Agent Reputation on Bonfires</div>
         <div className="grid grid-cols-3 gap-3">
           <div>
             <div className="text-lg font-bold text-zinc-200">
               {bonfiresReputation.totalPredictions > 0
                 ? `${(bonfiresReputation.accuracy * 100).toFixed(0)}%`
-                : '--'}
+                : 'New'}
             </div>
             <div className="text-xs text-zinc-500">Accuracy</div>
           </div>
           <div>
             <div className="text-lg font-bold text-zinc-200">
-              {bonfiresReputation.totalPredictions}
+              {bonfiresReputation.totalPredictions || '—'}
             </div>
             <div className="text-xs text-zinc-500">Predictions</div>
           </div>
@@ -63,9 +63,12 @@ export function BonfiresPanel({ state }: BonfiresPanelProps) {
             <div className={`text-lg font-bold ${trustColor}`}>
               {(bonfiresReputation.communityTrust * 100).toFixed(0)}%
             </div>
-            <div className="text-xs text-zinc-500">Trust</div>
+            <div className="text-xs text-zinc-500">Community Trust</div>
           </div>
         </div>
+        {bonfiresReputation.totalPredictions === 0 && (
+          <div className="text-[10px] text-zinc-600 mt-2">Reputation builds as the agent publishes predictions and the community validates them.</div>
+        )}
       </div>
 
       {/* Community Consensus on Active Tokens */}
@@ -78,7 +81,22 @@ export function BonfiresPanel({ state }: BonfiresPanelProps) {
           <ConsensusRow key={d.id} decision={d} />
         ))}
         {decisions.length === 0 && (
-          <div className="text-xs text-zinc-600 py-2">No decisions yet</div>
+          <div className="space-y-2 py-1">
+            <div className="text-[11px] text-zinc-400 leading-relaxed">
+              Bonfires knowledge graph is queried before every trade. Community sentiment, governance actions, and trending signals are fed into the AI committee as a <span className="text-orange-400 font-medium">4th consensus signal</span>.
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-zinc-950/50 rounded-lg p-2.5 border border-zinc-800/50">
+                <div className="text-[10px] text-orange-400/70 font-medium mb-1">Consensus Gate</div>
+                <div className="text-[10px] text-zinc-500">Community can override AI decisions when sentiment strongly disagrees</div>
+              </div>
+              <div className="bg-zinc-950/50 rounded-lg p-2.5 border border-zinc-800/50">
+                <div className="text-[10px] text-blue-400/70 font-medium mb-1">Decision Publishing</div>
+                <div className="text-[10px] text-zinc-500">Every trade decision is published back to Bonfires knowledge graph</div>
+              </div>
+            </div>
+            <div className="text-[10px] text-zinc-600 italic">Waiting for next cycle to query community...</div>
+          </div>
         )}
       </div>
 
