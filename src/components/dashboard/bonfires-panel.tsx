@@ -37,7 +37,7 @@ export function BonfiresPanel({ state }: BonfiresPanelProps) {
         </h2>
         <span className="flex items-center gap-1 px-2 py-0.5 bg-orange-900/40 text-orange-400 text-xs font-medium rounded-full border border-orange-800/50">
           <Shield className="w-3 h-3" />
-          Load-Bearing
+          Ready to Connect
         </span>
       </div>
 
@@ -83,19 +83,21 @@ export function BonfiresPanel({ state }: BonfiresPanelProps) {
         {decisions.length === 0 && (
           <div className="space-y-2 py-1">
             <div className="text-[11px] text-zinc-400 leading-relaxed">
-              Bonfires knowledge graph is queried before every trade. Community sentiment, governance actions, and trending signals are fed into the AI committee as a <span className="text-orange-400 font-medium">4th consensus signal</span>.
+              Full integration built against the <a href="https://docs.bonfires.ai" target="_blank" rel="noopener" className="text-orange-400 hover:text-orange-300 underline decoration-orange-400/30">Bonfires Delve API</a> — community sentiment, governance actions, and trending signals become a <span className="text-orange-400 font-medium">4th consensus signal</span> in the AI committee. Awaiting API credentials to go live.
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-zinc-950/50 rounded-lg p-2.5 border border-zinc-800/50">
                 <div className="text-[10px] text-orange-400/70 font-medium mb-1">Consensus Gate</div>
-                <div className="text-[10px] text-zinc-500">Community can override AI decisions when sentiment strongly disagrees</div>
+                <div className="text-[10px] text-zinc-500">Community overrides AI decisions when sentiment strongly disagrees</div>
               </div>
               <div className="bg-zinc-950/50 rounded-lg p-2.5 border border-zinc-800/50">
                 <div className="text-[10px] text-blue-400/70 font-medium mb-1">Decision Publishing</div>
-                <div className="text-[10px] text-zinc-500">Every trade decision is published back to Bonfires knowledge graph</div>
+                <div className="text-[10px] text-zinc-500">Agent memories stored via <code className="text-[9px] bg-zinc-800 px-1 rounded">/agents/stack/add</code></div>
               </div>
             </div>
-            <div className="text-[10px] text-zinc-600 italic">Waiting for next cycle to query community...</div>
+            <div className="text-[10px] text-zinc-500 mt-1 bg-zinc-950/50 rounded p-2 border border-zinc-800/30">
+              <span className="text-orange-400">Integration status:</span> Code complete against Delve REST API (<code className="text-[9px] bg-zinc-800 px-1 rounded">tnt-v2.api.bonfires.ai</code>). Requires <code className="text-[9px] bg-zinc-800 px-1 rounded">DELVE_API_KEY</code> + <code className="text-[9px] bg-zinc-800 px-1 rounded">BONFIRE_ID</code> to activate. One env var change to go live.
+            </div>
           </div>
         )}
       </div>
@@ -147,10 +149,10 @@ export function BonfiresPanel({ state }: BonfiresPanelProps) {
         {publishedDecisions.length === 0 && (
           <div className="space-y-2 py-1">
             <div className="text-[11px] text-zinc-500 leading-relaxed">
-              After each cycle, the agent publishes its trading decision back to Bonfires — including token, action, confidence, and reasoning. This makes the community smarter over time.
+              Each cycle publishes decisions to Bonfires via <code className="text-[9px] bg-zinc-800 px-1 rounded">POST /agents/stack/add</code> — token, action, confidence, reasoning. Community knowledge grows with every trade.
             </div>
             <div className="bg-zinc-950/50 rounded-lg p-2.5 border border-zinc-800/50">
-              <div className="text-[10px] text-zinc-400 mb-1.5">Example contribution:</div>
+              <div className="text-[10px] text-zinc-400 mb-1.5">Example contribution format:</div>
               <div className="flex items-center justify-between text-[10px]">
                 <span className="text-zinc-300 font-mono">ETH</span>
                 <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">BUY</span>
@@ -158,7 +160,7 @@ export function BonfiresPanel({ state }: BonfiresPanelProps) {
               </div>
               <div className="text-[9px] text-zinc-600 mt-1 italic">&quot;Rising Base ecosystem activity with strong DeFi governance signals&quot;</div>
             </div>
-            <div className="text-[10px] text-zinc-600 italic">Contributions begin on the next active cycle.</div>
+            <div className="text-[10px] text-zinc-500 italic">Activates when Bonfires API credentials are configured.</div>
           </div>
         )}
       </div>
